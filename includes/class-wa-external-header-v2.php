@@ -65,6 +65,8 @@ class Wa_External_Header_V2 {
 	 *   - Domain (eg. costume.no), which determines the brand the blog is co-branding with.
 	 *   - Emediate content unit category (or "shortname"), which enables tracking ad impressions correctly.
 	 *   - TNS tracking "path"; a string required to differentiate pageviews, for blogs where TNS/Gallup tracking is used.
+	 * 	 - WhiteAlbum API Token for API v2 access
+	 * 	 - WhiteAlbum API Secret for API v2 access
 	 *
 	 * The settings are handled in the class White_Album_External_Header_Admin.
 	 *

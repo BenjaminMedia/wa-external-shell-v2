@@ -1,0 +1,11 @@
+{
+  "name": "benjaminmedia/wa-external-shell-v2",
+  "type": "wordpress-plugin",
+  "homepage": "https://github.com/BenjaminMedia/wa-external-shell-v2",
+  "license": "GPLv3",
+  "description": "Co-branding/shell integration for WordPress sites collaborating commercially with Bonnier Media AS",
+  "keywords": ["plugin"],
+  "require": {
+    "composer/installers": "~1.0.6"
+  }
+}
