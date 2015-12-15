@@ -164,7 +164,7 @@ HTML;
         $domain = $this->user_config['co_branding_domain'];
         $host = "$domain";
         $showBanners = isset($this->user_config['bp_optional_banners']) ? 'false' : 'true';
-        $api_url = "http://$host/api/v2/external_headers/";
+        $api_url = "http://$host/api/v2/external_headers/?without_banners=".$showBanners;
         return $api_url;
     }
 
