@@ -106,13 +106,14 @@ class Wa_External_Header_V2_Public
                 $this->head
             ";
 
-            if ($this->header !== '') ob_start(array(&$this, 'insert_header'));
+            if ($this->header !== '') {
+                echo $this->insert_header($this->header);
+            }
     }
 
     public function wp_footer()
     {
         if ($this->header !== '') {
-            ob_end_flush();
 
             echo <<< HTML
         <div class="$this->white_album_css_namespace">
@@ -186,6 +187,7 @@ HTML;
 
     private function insert_header($buffer)
     {
+
         $header = <<< HTML
 
       <div class="$this->white_album_css_namespace">

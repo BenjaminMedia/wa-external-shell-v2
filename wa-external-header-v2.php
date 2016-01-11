@@ -70,6 +70,5 @@ function run_wa_external_header_v2() {
 
 	$plugin = new Wa_External_Header_V2();
 	$plugin->run();
-
 }
 run_wa_external_header_v2();
