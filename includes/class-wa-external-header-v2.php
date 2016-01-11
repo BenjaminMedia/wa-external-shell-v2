@@ -189,7 +189,7 @@ class Wa_External_Header_V2 {
 		$plugin_public = new Wa_External_Header_V2_Public( $this->get_plugin_name(), $this->get_version(), $this->get_options_group_name() );
 
 		$this->loader->add_action( 'wp_enqueue_style', $plugin_public, 'enqueue_fontawesome_styles' );
-		$this->loader->add_action( 'wp_head', $plugin_public, 'wp_head' );
+		$this->loader->add_action( 'wp_head', $plugin_public, 'wp_head',40);
 		$this->loader->add_action( 'wp_footer', $plugin_public, 'wp_footer' );
 
 	}
