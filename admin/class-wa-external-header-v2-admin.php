@@ -153,6 +153,13 @@ class Wa_External_Header_V2_Admin {
 				$this->plugin_name,
 				($this->plugin_name . '_section')
 		);
+		add_settings_field(
+				'bp_full_shell',
+				__( 'Full shell', $this->plugin_name ),
+				array(&$this, 'bp_full_shell_render'),
+				$this->plugin_name,
+				($this->plugin_name . '_section')
+		);
 		/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */
 		add_settings_field(
 				'wa_api_uid',
@@ -189,6 +196,10 @@ class Wa_External_Header_V2_Admin {
 
 	public function bp_optional_banners_render(  ) {
 		echo $this->build_settings_checkbox('bp_optional_banners');
+	}
+
+	public function bp_full_shell_render(  ) {
+		echo $this->build_settings_checkbox('bp_full_shell');
 	}
 
 	/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */

@@ -51,11 +51,8 @@ class Wa_External_Header_V2_Public
     private $options_group_name;
 
     private $white_album_css_namespace,
-        $stylesheet,
-        $javascript,
         $header,
         $footer,
-        $analytics,
         $user_config,
         $start_tag,
         $end_tag,
@@ -97,7 +94,19 @@ class Wa_External_Header_V2_Public
             $tns_path = $this->user_config['tns_tracking_path'];
 
             if ($tns_path) {
-                $this->analytics = $this->replace_tns_tracking($tns_path);
+                //ex <meta content="MMK/COSTUME/ExBlogger" name="tns-path" />
+                $this->head = preg_replace(
+                    "/<meta.*?name=\"tns-path\"[\s\/]+>/",
+                    "<meta content=\"$tns_path\" name=\"tns-path\">",
+                    $this->head
+                );
+
+                /*//ex <div data-tns-path="costume/external">
+                $this->header = preg_replace(
+                    "/<div data-tns-path=\"(.*?)\">/",
+                    "<div data-tns-path=\"$tns_path\">",
+                    $this->header
+                );*/
             }
 
             echo "
@@ -165,7 +174,8 @@ HTML;
         $domain = $this->user_config['co_branding_domain'];
         $host = "$domain";
         $showBanners = isset($this->user_config['bp_optional_banners']) ? 'false' : 'true';
-        $api_url = "http://$host/api/v2/external_headers/?without_banners=".$showBanners;
+        $fullShell = isset($this->user_config['bp_full_shell']) ? 'false' : 'true';
+        $api_url = "http://$host/api/v2/external_headers/?partial=".$fullShell."&without_banners=".$showBanners;
         return $api_url;
     }
 
@@ -176,13 +186,13 @@ HTML;
         );
     }
 
-    private function replace_tns_tracking($new_path)
+    private function replace_tns_tracking($new_path,$source)
     {
-        return preg_replace(
+        return (preg_replace(
             "/<meta.*?name=\"tns-path\"[\s\/]+>/",
             "<meta content=\"$new_path\" name=\"tns-path\">",
-            $this->analytics
-        );
+            $source
+        ));
     }
 
     private function insert_header($buffer)
