@@ -176,7 +176,6 @@ HTML;
         $showBanners = isset($this->user_config['bp_optional_banners']) ? 'false' : 'true';
         $fullShell = isset($this->user_config['bp_full_shell']) ? 'false' : 'true';
         $api_url = "http://$host/api/v2/external_headers/?partial=".$fullShell."&without_banners=".$showBanners;
-        $api_url = "http://$host/api/v2/external_headers/?without_banners=".$showBanners;
         return $api_url;
     }
 
