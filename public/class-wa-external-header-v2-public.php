@@ -90,39 +90,40 @@ class Wa_External_Header_V2_Public
 
     public function wp_head()
     {
-            $content_unit_category = $this->user_config['content_unit_category'];
-            $tns_path = $this->user_config['tns_tracking_path'];
+        $content_unit_category = $this->user_config['content_unit_category'];
+        $tns_path = $this->user_config['tns_tracking_path'];
+        $hideShell = isset($this->user_config['bp_hide_shell']);
 
-            if ($tns_path) {
-                //ex <meta content="MMK/COSTUME/ExBlogger" name="tns-path" />
-                $this->head = preg_replace(
-                    "/<meta.*?name=\"tns-path\"[\s\/]+>/",
-                    "<meta content=\"$tns_path\" name=\"tns-path\">",
-                    $this->head
-                );
-
-                /*//ex <div data-tns-path="costume/external">
-                $this->header = preg_replace(
-                    "/<div data-tns-path=\"(.*?)\">/",
-                    "<div data-tns-path=\"$tns_path\">",
-                    $this->header
-                );*/
-            }
-
-            echo "
-                <meta name=\"banner-category\" content=\"$content_unit_category\">
-
+        if ($tns_path) {
+            //ex <meta content="MMK/COSTUME/ExBlogger" name="tns-path" />
+            $this->head = preg_replace(
+                "/<meta.*?name=\"tns-path\"[\s\/]+>/",
+                "<meta content=\"$tns_path\" name=\"tns-path\">",
                 $this->head
+            );
+        }
+
+        if($hideShell){
+            $this->head = preg_replace("/<link href=\".*?\" rel=\"(apple\-touch\-icon|shortcut icon)\" type=\"image\/png\" \/>/","",$this->head);
+        }
+
+        echo "
+            <meta name=\"banner-category\" content=\"$content_unit_category\">
+            $this->head
             ";
 
-            if ($this->header !== '') {
-                echo $this->insert_header($this->header);
-            }
+        if ($this->header !== '' && !$hideShell) {
+            echo $this->insert_header($this->header);
+        }
+        else if(!$hideShell){
+            echo $this->remove_header($this->header);
+        }
     }
 
     public function wp_footer()
     {
-        if ($this->header !== '') {
+        $hideShell = isset($this->user_config['bp_hide_shell']);
+        if ($this->header !== '' && !$hideShell) {
 
             echo <<< HTML
         <div class="$this->white_album_css_namespace">
@@ -206,6 +207,15 @@ HTML;
 HTML;
 
         return preg_replace("/<body(.*?)>/", "<body$1>" . $header, $buffer);
+    }
+
+    private function remove_header($buffer)
+    {
+
+        $header = <<< HTML
+        $this->header
+HTML;
+        return preg_replace("/<div class=\"bonnier\-wrapper\">.*<\/header> <\/div>/","",$header);
     }
 
     private function get_plugin_configuration()
