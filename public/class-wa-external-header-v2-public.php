@@ -51,6 +51,7 @@ class Wa_External_Header_V2_Public
     private $options_group_name;
 
     private $white_album_css_namespace,
+        $afubar,
         $header,
         $footer,
         $user_config,
@@ -82,7 +83,9 @@ class Wa_External_Header_V2_Public
             $this->start_tag = print_r($wa_content->html->start_tag, true);
             $this->end_tag = print_r($wa_content->html->end_tag, true);
             $this->head = print_r($wa_content->html->head, true);
-            $this->header = print_r($wa_content->html->body->header, true);
+            preg_match("/^(.*)(<header .*)$/s", $wa_content->html->body->header, $siteHeader);
+            $this->afubar = $siteHeader[1];
+            $this->header = $siteHeader[2];
             $this->footer = print_r($wa_content->html->body->footer, true);
             $this->banners = print_r($wa_content->html->banners, true);
         }
@@ -109,15 +112,16 @@ class Wa_External_Header_V2_Public
 
         echo "
             <meta name=\"banner-category\" content=\"$content_unit_category\">
-            $this->head
+                $this->head
             ";
 
         if ($this->header !== '' && !$hideShell) {
-            echo $this->insert_header($this->header);
+            $this->insert_header();
         }
         else if(!$hideShell){
             echo $this->remove_header($this->header);
         }
+
     }
 
     public function wp_footer()
@@ -196,17 +200,14 @@ HTML;
         ));
     }
 
-    private function insert_header($buffer)
+    private function insert_header()
     {
-
-        $header = <<< HTML
-
-      <div class="$this->white_album_css_namespace">
-        $this->header
-      </div>
-HTML;
-
-        return preg_replace("/<body(.*?)>/", "<body$1>" . $header, $buffer);
+        echo '
+            <div class="'.$this->white_album_css_namespace.'">
+            '.$this->afubar;
+        do_action('before_wa_shell_header');
+        echo $this->header.'
+            </div>';
     }
 
     private function remove_header($buffer)
