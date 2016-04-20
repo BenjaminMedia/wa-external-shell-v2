@@ -97,13 +97,14 @@ class Wa_External_Header_V2_Public
         $tns_path = $this->user_config['tns_tracking_path'];
         $hideShell = isset($this->user_config['bp_hide_shell']);
 
-        if ($tns_path) {
-            //ex <meta content="MMK/COSTUME/ExBlogger" name="tns-path" />
-            $this->head = preg_replace(
-                "/<meta.*?name=\"tns-path\"[\s\/]+>/",
-                "<meta content=\"$tns_path\" name=\"tns-path\">",
-                $this->head
+        if (!empty($tns_path)) {
+            //<div data-tns-path="MMK/COSTUME/ExBlogger"></div>
+            $this->afubar = preg_replace(
+                "/<div data\-tns\-path=\"(.*?)\"><\/div>/",
+                "<div data-tns-path=\"$tns_path\"></div>",
+                $this->afubar
             );
+            //<div data-tns-path="$tns_path></div>
         }
 
         if($hideShell){
