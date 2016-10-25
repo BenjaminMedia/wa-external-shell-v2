@@ -192,12 +192,12 @@ HTML;
     {
         $domain = $this->user_config['co_branding_domain'];
         $host = "$domain";
-        $showBanners = isset($this->user_config['bp_optional_banners'])?'false':'true';
-        $fullShell = isset($this->user_config['bp_full_shell']) ? 'false' : 'true';
-        $siteType = isset($this->user_config['site_type'])?$this->user_config['site_type']:false;
-        $bcmType = isset($this->user_config['overwrite_site_type'])?'&bcm_type='.$siteType:false;
+        $showBanners = isset( $this->user_config['bp_optional_banners'] ) ? 'false' : 'true';
+        $fullShell = isset( $this->user_config['bp_full_shell'] ) ? 'false' : 'true';
+        $siteType = isset( $this->user_config['site_type'] ) ? $this->user_config['site_type'] : false;
+        $bcmType = isset( $this->user_config['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
         //create an admin option to overwrite "bcm_type".
-        $api_url = "http://$host/api/v3/external_headers/?partial=".$fullShell."&without_ads=".$showBanners.$bcmType;
+        $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "&without_ads=" . $showBanners . $bcmType;
         return $api_url;
     }
 
