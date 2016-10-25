@@ -50,6 +50,8 @@ class Wa_External_Header_V2_Public
      */
     private $options_group_name;
 
+    private static $instance;
+
     private $white_album_css_namespace,
         $afubar,
         $header,
@@ -87,8 +89,21 @@ class Wa_External_Header_V2_Public
             $this->afubar = $siteHeader[1];
             $this->header = $siteHeader[2];
             $this->footer = print_r($wa_content->html->body->footer, true);
-            $this->banners = print_r($wa_content->html->banners, true);
+            $this->banners = print_r($wa_content->html->ad, true);
         }
+    }
+
+    public function getBanners(){
+        return $this->banners;
+    }
+
+    public static function getInstance($plugin_name = 'wa-external-header-v2', $version = '1.0.0', $options_group_name = 'wa-external-header-v2_settings')
+    {
+        if (null === static::$instance) {
+            static::$instance = new static($plugin_name, $version, $options_group_name);
+        }
+
+        return static::$instance;
     }
 
     public function wp_head()
@@ -106,15 +121,13 @@ class Wa_External_Header_V2_Public
             );
             //<div data-tns-path="$tns_path></div>
         }
-
         if($hideShell){
             $this->head = preg_replace("/<link href=\".*?\" rel=\"(apple\-touch\-icon|shortcut icon)\" type=\"image\/png\" \/>/","",$this->head);
         }
 
-        echo "
-            <meta name=\"banner-category\" content=\"$content_unit_category\">
-                $this->head
-            ";
+        echo
+            $this->head.
+            "<meta content=\"".$this->user_config['sub_name']."\" name=\"bcm-sub\" />";
 
         if ($this->header !== '' && !$hideShell) {
             $this->insert_header();
@@ -179,9 +192,12 @@ HTML;
     {
         $domain = $this->user_config['co_branding_domain'];
         $host = "$domain";
-        $showBanners = isset($this->user_config['bp_optional_banners']) ? 'false' : 'true';
-        $fullShell = isset($this->user_config['bp_full_shell']) ? 'false' : 'true';
-        $api_url = "http://$host/api/v2/external_headers/?partial=".$fullShell."&without_banners=".$showBanners;
+        $showBanners = isset( $this->user_config['bp_optional_banners'] ) ? 'false' : 'true';
+        $fullShell = isset( $this->user_config['bp_full_shell'] ) ? 'false' : 'true';
+        $siteType = isset( $this->user_config['site_type'] ) ? $this->user_config['site_type'] : false;
+        $bcmType = isset( $this->user_config['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
+        //create an admin option to overwrite "bcm_type".
+        $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "&without_ads=" . $showBanners . $bcmType;
         return $api_url;
     }
 
@@ -203,12 +219,13 @@ HTML;
 
     private function insert_header()
     {
+        do_action('before_wa_shell_start');
         echo '
             <div class="'.$this->white_album_css_namespace.'">
             '.$this->afubar;
-        do_action('before_wa_shell_header');
-        echo $this->header.'
-            </div>';
+            do_action('before_wa_shell_header');
+            echo $this->header."
+            </div>";
     }
 
     private function remove_header($buffer)
@@ -223,6 +240,10 @@ HTML;
     private function get_plugin_configuration()
     {
         return get_option($this->options_group_name);
+    }
+
+    public function showShellBanners(){
+        return isset($this->user_config['bp_optional_banners']);
     }
 
 }

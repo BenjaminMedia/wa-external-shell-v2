@@ -123,6 +123,13 @@ class Wa_External_Header_V2_Admin {
 				$this->plugin_name
 		);
 
+		add_settings_section(
+				($this->plugin_name . '_dfp_section'),
+				__( 'DFP Fields', $this->plugin_name ),
+				array(&$this, 'dfp_settings_section_callback'),
+				$this->plugin_name
+		);
+
 		add_settings_field(
 				'co_branding_domain',
 				__( 'Co-branding domain <br><small>(domain only, eg. costume.no)</small>', $this->plugin_name ),
@@ -183,6 +190,31 @@ class Wa_External_Header_V2_Admin {
 				($this->plugin_name . '_section')
 		);
 		/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */
+
+		/* --- V3 DFP FIELDS --- */
+		add_settings_field(
+				'overwrite_site_type',
+				__( 'Overwrite Site Type?', $this->plugin_name ),
+				array(&$this, 'wa_api_overwrite_site_type_render'),
+				$this->plugin_name,
+				($this->plugin_name . '_dfp_section')
+		);
+
+		add_settings_field(
+				'site_type',
+				__( 'Site Type', $this->plugin_name ),
+				array(&$this, 'wa_api_site_type_render'),
+				$this->plugin_name,
+				($this->plugin_name . '_dfp_section')
+		);
+
+		add_settings_field(
+				'sub_name',
+				__( 'Sub Name (Name of Site)', $this->plugin_name ),
+				array(&$this, 'wa_api_sub_name_render'),
+				$this->plugin_name,
+				($this->plugin_name . '_dfp_section')
+		);
 	}
 
 	public function optional_banners_render(  ) {
@@ -223,8 +255,26 @@ class Wa_External_Header_V2_Admin {
 	}
 	/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */
 
+	/* --- V3 DFP FIELDS --- */
+
+	public function wa_api_overwrite_site_type_render(){
+		echo $this->build_settings_checkbox('overwrite_site_type');
+	}
+
+	public function wa_api_site_type_render(){
+		echo $this->build_settings_field('site_type');
+	}
+
+	public function wa_api_sub_name_render(){
+		echo $this->build_settings_field('sub_name');
+	}
+
 	public function settings_section_callback(  ) {
-		echo __( 'This section description', $this->plugin_name );
+		echo __( 'General Shell Settings', $this->plugin_name );
+	}
+
+	public function dfp_settings_section_callback(  ) {
+		echo __( 'DFP fields added to the html head of the blog, to make banners more targeted.', $this->plugin_name );
 	}
 
 	public function options_page(  ) {
