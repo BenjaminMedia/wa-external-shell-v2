@@ -190,7 +190,7 @@ HTML;
             $cacheFileFolder = trailingslashit(WP_CONTENT_DIR) . 'cache/wa-shell/';
             $cacheFilePath = $cacheFileFolder . parse_url($this->get_white_album_api_url())['host'].'.json';
 
-            if (!file_exists($cacheFilePath)) {
+            if (!file_exists($cacheFileFolder)) {
                 mkdir($cacheFileFolder, 0777, true);
             }
 
