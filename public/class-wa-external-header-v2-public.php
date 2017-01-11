@@ -174,30 +174,57 @@ HTML;
         wp_enqueue_style('font-awesome', '//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css', array(), $this->version, 'all');
     }
 
-
     private function get_white_album_content()
     {
-        $url = $this->get_white_album_api_url();
-        $args = array(
-            'headers' => $this->get_authentication_header()
-        );
-        $response = wp_remote_retrieve_body(wp_remote_get($url, $args));
+        //try to see if it's in the cache
+        $responseCache = wp_cache_get( 'shell_response_body', $this->options_group_name );
+        if ( false === $responseCache ) {
+            //if the cache is empty, try to fetch the shell
+            $url = $this->get_white_album_api_url();
+            $args = array(
+                'headers' => $this->get_authentication_header()
+            );
 
-        if (is_wp_error($response)) return;
+            $shellResponseBody = wp_remote_retrieve_body(wp_remote_get($url, $args));
 
-        return json_decode($response);
+            $cacheFileFolder = trailingslashit(WP_CONTENT_DIR) . 'cache/wa-shell/';
+            $cacheFilePath = $cacheFileFolder . parse_url($this->get_white_album_api_url())['host'].'.json';
+
+            if (!file_exists($cacheFileFolder)) {
+                mkdir($cacheFileFolder, 0777, true);
+            }
+
+            if (!empty($shellResponseBody)) {
+                // if the shell response is not empty (/ checking if it returns an error), then write the shell to our local file
+                file_put_contents($cacheFilePath, $shellResponseBody);
+            }
+
+            //put the local file's content into cache, so that the response can be fetched faster
+            $newresponseCache = file_get_contents($cacheFilePath);
+            wp_cache_set( 'shell_response_body', $newresponseCache, $this->options_group_name );
+
+            return json_decode($newresponseCache);
+        }
+
+        return json_decode($responseCache);
     }
 
     private function get_white_album_api_url()
     {
-        $domain = $this->user_config['co_branding_domain'];
-        $host = "$domain";
-        $showBanners = isset( $this->user_config['bp_optional_banners'] ) ? 'false' : 'true';
-        $fullShell = isset( $this->user_config['bp_full_shell'] ) ? 'false' : 'true';
-        $siteType = isset( $this->user_config['site_type'] ) ? $this->user_config['site_type'] : false;
-        $bcmType = isset( $this->user_config['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
-        //create an admin option to overwrite "bcm_type".
-        $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "&without_ads=" . $showBanners . $bcmType;
+        $api_url = wp_cache_get( 'shell_api_url', $this->options_group_name );
+        if ( false === $api_url ) {
+            $domain = $this->user_config['co_branding_domain'];
+            $host = "$domain";
+            $showBanners = isset( $this->user_config['bp_optional_banners'] ) ? 'false' : 'true';
+            $fullShell = isset( $this->user_config['bp_full_shell'] ) ? 'false' : 'true';
+            $siteType = isset( $this->user_config['site_type'] ) ? $this->user_config['site_type'] : false;
+            $bcmType = isset( $this->user_config['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
+            //create an admin option to overwrite "bcm_type".
+            $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "&without_ads=" . $showBanners . $bcmType;
+            wp_cache_set( 'shell_api_url', $api_url, $this->options_group_name );
+            return $api_url;
+        }
+
         return $api_url;
     }
 
