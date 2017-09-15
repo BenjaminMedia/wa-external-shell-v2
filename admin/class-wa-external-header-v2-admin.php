@@ -174,6 +174,20 @@ class Wa_External_Header_V2_Admin {
 				$this->plugin_name,
 				($this->plugin_name . '_section')
 		);
+        add_settings_field(
+            'compact_menu',
+            __( 'Compact Header / menu?', $this->plugin_name ),
+            array(&$this, 'compact_menu_render'),
+            $this->plugin_name,
+            ($this->plugin_name . '_section')
+        );
+		add_settings_field(
+				'head_hook',
+				__( 'Head Hook <br /><small>(only add this if you have something other than "wp_head")</small>', $this->plugin_name ),
+				array(&$this, 'head_hook_render'),
+				$this->plugin_name,
+				($this->plugin_name . '_section')
+		);
 		/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */
 		add_settings_field(
 				'wa_api_uid',
@@ -243,6 +257,14 @@ class Wa_External_Header_V2_Admin {
 
 	public function bp_hide_shell_render(  ) {
 		echo $this->build_settings_checkbox('bp_hide_shell');
+	}
+
+    public function compact_menu_render(){
+        echo $this->build_settings_checkbox('compact_menu');
+    }
+
+	public function head_hook_render(){
+		echo $this->build_settings_field('head_hook');
 	}
 
 	/* --- WHITEALBUM V2 AUTHENTICATION FIELDS --- */

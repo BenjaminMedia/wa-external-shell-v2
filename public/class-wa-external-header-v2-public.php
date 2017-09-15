@@ -63,6 +63,22 @@ class Wa_External_Header_V2_Public
         $head;
 
     /**
+     * @return mixed
+     */
+    public function getUserConfig()
+    {
+        return $this->user_config;
+    }
+
+    /**
+     * @param mixed $user_config
+     */
+    public function setUserConfig($user_config)
+    {
+        $this->user_config = $user_config;
+    }
+
+    /**
      * Initialize the class and set its properties.
      *
      * @since    1.0.0
@@ -77,7 +93,7 @@ class Wa_External_Header_V2_Public
         $this->options_group_name = $options_group_name;
         $this->white_album_css_namespace = 'bonnier-wrapper';
 
-        $this->user_config = $this->get_plugin_configuration();
+        $this->setUserConfig($this->get_plugin_configuration());
 
         $wa_content = $this->get_white_album_content();
 
@@ -85,9 +101,11 @@ class Wa_External_Header_V2_Public
             $this->start_tag = print_r($wa_content->html->start_tag, true);
             $this->end_tag = print_r($wa_content->html->end_tag, true);
             $this->head = print_r($wa_content->html->head, true);
-            preg_match("/^(.*)(<header .*)$/s", $wa_content->html->body->header, $siteHeader);
-            $this->afubar = $siteHeader[1];
-            $this->header = $siteHeader[2];
+            // preg_match("/^(.*)(<header .*)$/s", $wa_content->html->body->header, $siteHeader);
+            // print_r($wa_content->html->body);
+            // $this->afubar = $siteHeader[1];
+            $this->header = $wa_content->html->body->header;
+            // dd($this->header);
             $this->footer = print_r($wa_content->html->body->footer, true);
             $this->banners = print_r($wa_content->html->ad, true);
         }
@@ -108,9 +126,9 @@ class Wa_External_Header_V2_Public
 
     public function wp_head()
     {
-        $content_unit_category = $this->user_config['content_unit_category'];
-        $tns_path = $this->user_config['tns_tracking_path'];
-        $hideShell = isset($this->user_config['bp_hide_shell']);
+        $content_unit_category = $this->getUserConfig()['content_unit_category'];
+        $tns_path = $this->getUserConfig()['tns_tracking_path'];
+        $hideShell = isset($this->getUserConfig()['bp_hide_shell']);
 
         if (!empty($tns_path)) {
             //<div data-tns-path="MMK/COSTUME/ExBlogger"></div>
@@ -127,7 +145,7 @@ class Wa_External_Header_V2_Public
 
         echo
             $this->head.
-            "<meta content=\"".$this->user_config['sub_name']."\" name=\"bcm-sub\" />";
+            "<meta content=\"".$this->getUserConfig()['sub_name']."\" name=\"bcm-sub\" />";
 
         if ($this->header !== '' && !$hideShell) {
             $this->insert_header();
@@ -140,7 +158,7 @@ class Wa_External_Header_V2_Public
 
     public function wp_footer()
     {
-        $hideShell = isset($this->user_config['bp_hide_shell']);
+        $hideShell = isset($this->getUserConfig()['bp_hide_shell']);
         if ($this->header !== '' && !$hideShell) {
 
             echo <<< HTML
@@ -213,14 +231,15 @@ HTML;
     {
         $api_url = wp_cache_get( 'shell_api_url', $this->options_group_name );
         if ( false === $api_url ) {
-            $domain = $this->user_config['co_branding_domain'];
+            $domain = $this->getUserConfig()['co_branding_domain'];
             $host = "$domain";
-            $showBanners = isset( $this->user_config['bp_optional_banners'] ) ? 'false' : 'true';
-            $fullShell = isset( $this->user_config['bp_full_shell'] ) ? 'false' : 'true';
-            $siteType = isset( $this->user_config['site_type'] ) ? $this->user_config['site_type'] : false;
-            $bcmType = isset( $this->user_config['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
+            $showBanners = isset( $this->getUserConfig()['bp_optional_banners'] ) ? 'false' : 'true';
+            $fullShell = isset( $this->getUserConfig()['bp_full_shell'] ) ? 'false' : 'true';
+            $siteType = isset( $this->getUserConfig()['site_type'] ) ? $this->getUserConfig()['site_type'] : false;
+            $bcmType = isset( $this->getUserConfig()['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
+            $compactMenu = isset( $this->getUserConfig()['compact_menu'] ) ? "&menu_type=compact" : false;
             //create an admin option to overwrite "bcm_type".
-            $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "&without_ads=" . $showBanners . $bcmType;
+            $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "$compactMenu&without_ads=" . $showBanners . $bcmType;
             wp_cache_set( 'shell_api_url', $api_url, $this->options_group_name );
             return $api_url;
         }
@@ -231,7 +250,7 @@ HTML;
     private function get_authentication_header()
     {
         return array(
-            'Authorization' => 'Basic ' . base64_encode($this->user_config['wa_api_uid'] . ':' . $this->user_config['wa_api_secret'])
+            'Authorization' => 'Basic ' . base64_encode($this->getUserConfig()['wa_api_uid'] . ':' . $this->getUserConfig()['wa_api_secret'])
         );
     }
 
@@ -251,6 +270,7 @@ HTML;
             <div class="'.$this->white_album_css_namespace.'">
             '.$this->afubar;
             do_action('before_wa_shell_header');
+            //dd($this->white_album_css_namespace);
             echo $this->header."
             </div>";
     }
@@ -270,7 +290,7 @@ HTML;
     }
 
     public function showShellBanners(){
-        return isset($this->user_config['bp_optional_banners']);
+        return isset($this->getUserConfig()['bp_optional_banners']);
     }
 
 }
