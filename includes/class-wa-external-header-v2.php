@@ -188,8 +188,9 @@ class Wa_External_Header_V2 {
 
 		$plugin_public = Wa_External_Header_V2_Public::getInstance( $this->get_plugin_name(), $this->get_version(), $this->get_options_group_name() );
 
+		$headHook = (isset($plugin_public->getUserConfig()['head_hook']) ? $plugin_public->getUserConfig()['head_hook'] : "wp_head");
 		$this->loader->add_action( 'wp_enqueue_style', $plugin_public, 'enqueue_fontawesome_styles' );
-		$this->loader->add_action( 'wp_head', $plugin_public, 'wp_head',40);
+		$this->loader->add_action( $headHook, $plugin_public, 'wp_head', 40);
 		$this->loader->add_action( 'wp_footer', $plugin_public, 'wp_footer' );
 
 	}
