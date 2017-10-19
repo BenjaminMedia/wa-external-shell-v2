@@ -70,6 +70,21 @@ class Wa_External_Header_V2_Public
         return $this->user_config;
     }
 
+    public function getOption($option, $locale = null){
+        if(isset($this->getUserConfig()[$option])){
+            return $this->getUserConfig()[$option];
+        }
+        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        if(Wa_External_Header_V2_Admin::languagesIsEnabled()){
+            $locale = (!empty($locale)) ? $locale : $this->getCurrentLanguage()->locale;
+            if(isset($this->getUserConfig()[$option.'_'. $locale])){
+                return $this->getUserConfig()[$option.'_'.$locale];
+            }
+            return null;
+        }
+        return null;
+    }
+
     /**
      * @param mixed $user_config
      */
@@ -94,7 +109,9 @@ class Wa_External_Header_V2_Public
         $this->white_album_css_namespace = 'bonnier-wrapper';
 
         $this->setUserConfig($this->get_plugin_configuration());
+    }
 
+    public function setShellProperties(){
         $wa_content = $this->get_white_album_content();
 
         if ($wa_content !== null) {
@@ -105,7 +122,6 @@ class Wa_External_Header_V2_Public
             // print_r($wa_content->html->body);
             // $this->afubar = $siteHeader[1];
             $this->header = $wa_content->html->body->header;
-            // dd($this->header);
             $this->footer = print_r($wa_content->html->body->footer, true);
             $this->banners = print_r($wa_content->html->ad, true);
         }
@@ -126,9 +142,11 @@ class Wa_External_Header_V2_Public
 
     public function wp_head()
     {
-        $content_unit_category = $this->getUserConfig()['content_unit_category'];
-        $tns_path = $this->getUserConfig()['tns_tracking_path'];
-        $hideShell = isset($this->getUserConfig()['bp_hide_shell']);
+        $this->setShellProperties();
+        $subname = $this->getOption('sub_name');
+        $content_unit_category = $this->getOption('content_unit_category');
+        $tns_path = $this->getOption('tns_tracking_path');
+        $hideShell = !empty($this->getOption('bp_hide_shell')) ? true : false;
 
         if (!empty($tns_path)) {
             //<div data-tns-path="MMK/COSTUME/ExBlogger"></div>
@@ -145,7 +163,7 @@ class Wa_External_Header_V2_Public
 
         echo
             $this->head.
-            "<meta content=\"".$this->getUserConfig()['sub_name']."\" name=\"bcm-sub\" />";
+            "<meta content=\"".$subname."\" name=\"bcm-sub\" />";
 
         if ($this->header !== '' && !$hideShell) {
             $this->insert_header();
@@ -197,6 +215,7 @@ HTML;
         //try to see if it's in the cache
         $responseCache = wp_cache_get( 'shell_response_body', $this->options_group_name );
         if ( false === $responseCache ) {
+
             //if the cache is empty, try to fetch the shell
             $url = $this->get_white_album_api_url();
             $args = array(
@@ -206,7 +225,8 @@ HTML;
             $shellResponseBody = wp_remote_retrieve_body(wp_remote_get($url, $args));
 
             $cacheFileFolder = trailingslashit(WP_CONTENT_DIR) . 'cache/wa-shell/';
-            $cacheFilePath = $cacheFileFolder . parse_url($this->get_white_album_api_url())['host'].'.json';
+            $fileName = parse_url($url)['host'];
+            $cacheFilePath = $cacheFileFolder . $fileName.'.json';
 
             if (!file_exists($cacheFileFolder)) {
                 mkdir($cacheFileFolder, 0777, true);
@@ -216,7 +236,9 @@ HTML;
                 // if the shell response is not empty (/ checking if it returns an error), then write the shell to our local file
                 file_put_contents($cacheFilePath, $shellResponseBody);
             }
-
+            if(!file_exists($cacheFilePath)){
+                return;
+            }
             //put the local file's content into cache, so that the response can be fetched faster
             $newresponseCache = file_get_contents($cacheFilePath);
             wp_cache_set( 'shell_response_body', $newresponseCache, $this->options_group_name );
@@ -227,18 +249,30 @@ HTML;
         return json_decode($responseCache);
     }
 
+    /**
+     * Get the current language by looking at the current HTTP_HOST
+     *
+     * @return null|PLL_Language
+     */
+    public function getCurrentLanguage()
+    {
+        if (Wa_External_Header_V2_Admin::languagesIsEnabled()) {
+            return PLL()->model->get_language(pll_current_language());
+        }
+        return null;
+    }
+
     private function get_white_album_api_url()
     {
         $api_url = wp_cache_get( 'shell_api_url', $this->options_group_name );
         if ( false === $api_url ) {
-            $domain = $this->getUserConfig()['co_branding_domain'];
+            $domain = $this->getOption('co_branding_domain');
             $host = "$domain";
-            $showBanners = isset( $this->getUserConfig()['bp_optional_banners'] ) ? 'false' : 'true';
-            $fullShell = isset( $this->getUserConfig()['bp_full_shell'] ) ? 'false' : 'true';
-            $siteType = isset( $this->getUserConfig()['site_type'] ) ? $this->getUserConfig()['site_type'] : false;
-            $bcmType = isset( $this->getUserConfig()['overwrite_site_type'] ) ? '&bcm_type=' . $siteType : false;
-            $compactMenu = isset( $this->getUserConfig()['compact_menu'] ) ? "&menu_type=compact" : false;
-            //create an admin option to overwrite "bcm_type".
+            $showBanners = !empty( $this->getOption('bp_optional_banners')) ? 'false' : 'true';
+            $fullShell = !empty( $this->getOption('bp_full_shell')) ? 'false' : 'true';
+            $siteType = !empty( $this->getOption('site_type')) ? $this->getOption('site_type') : false;
+            $bcmType = !empty( $this->getOption('overwrite_site_type')) ? '&bcm_type=' . $siteType : false;
+            $compactMenu = !empty( $this->getOption('compact_menu')) ? "&menu_type=compact" : false;
             $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "$compactMenu&without_ads=" . $showBanners . $bcmType;
             wp_cache_set( 'shell_api_url', $api_url, $this->options_group_name );
             return $api_url;
@@ -250,7 +284,7 @@ HTML;
     private function get_authentication_header()
     {
         return array(
-            'Authorization' => 'Basic ' . base64_encode($this->getUserConfig()['wa_api_uid'] . ':' . $this->getUserConfig()['wa_api_secret'])
+            'Authorization' => 'Basic ' . base64_encode($this->getOption('wa_api_uid') . ':' . $this->getOption('wa_api_secret'))
         );
     }
 
@@ -270,7 +304,6 @@ HTML;
             <div class="'.$this->white_album_css_namespace.'">
             '.$this->afubar;
             do_action('before_wa_shell_header');
-            //dd($this->white_album_css_namespace);
             echo $this->header."
             </div>";
     }
