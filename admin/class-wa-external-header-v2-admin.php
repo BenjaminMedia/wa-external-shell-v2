@@ -57,6 +57,19 @@ class Wa_External_Header_V2_Admin {
 
 	}
 
+	public static function languagesIsEnabled()
+	{
+		return function_exists('Pll') && PLL()->model->get_languages_list();
+	}
+
+	public function getLanguages()
+	{
+		if (self::languagesIsEnabled()) {
+			return PLL()->model->get_languages_list();
+		}
+		return false;
+	}
+
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
@@ -304,6 +317,15 @@ class Wa_External_Header_V2_Admin {
 	}
 
 	private function build_settings_field($option_key) {
+		if(self::languagesIsEnabled()){
+			$fields = '';
+			foreach($this->getLanguages() as $language){
+				$options = get_option( $this->options_group_name );
+				$value = (isset($options[$option_key. '_' . $language->locale]) ? $options[$option_key . '_' . $language->locale] : '');
+				 $fields .= $language->flag.'&nbsp;<input type="text" name="' . $this->options_group_name . '['. $option_key. '_' . $language->locale .']" value="' . $value . '"><br />';
+			}
+			return $fields;
+		}
 		$options = get_option( $this->options_group_name );
 		$value = (isset($options[$option_key]) ? $options[$option_key] : '');
 
@@ -311,6 +333,17 @@ class Wa_External_Header_V2_Admin {
 	}
 
 	private function build_settings_checkbox($option_key) {
+		if(self::languagesIsEnabled()){
+			$fields = '';
+			foreach($this->getLanguages() as $language){
+				$options = get_option( $this->options_group_name );
+				$value = (isset($options[$option_key. '_' . $language->locale]) ? $options[$option_key . '_' . $language->locale] : '');
+				$checked = ($value == 'true') ? 'checked="checked"' : '';
+
+				$fields .= $language->flag.'&nbsp;<input type="checkbox" value="true" name="' . $this->options_group_name . '['. $option_key. '_' . $language->locale .']" '.$checked.'><br />';
+			}
+			return $fields;
+		}
 		$options = get_option( $this->options_group_name );
 		$value = (isset($options[$option_key]) ? $options[$option_key] : '');
 
@@ -320,6 +353,22 @@ class Wa_External_Header_V2_Admin {
 	}
 
 	private function build_settings_dropdown($option_key,$dropdown_options){
+		if(self::languagesIsEnabled()){
+			$fields = '';
+			foreach($this->getLanguages() as $language){
+				$options = get_option( $this->options_group_name );
+				$dropdown_output = '<select name="'.$this->options_group_name.'['. $option_key . '_' . $language->locale.']">';
+
+				foreach($dropdown_options as $dropdown_key => $dropdown_value){
+					$selected = ($options[$option_key. '_' . $language->locale] === $dropdown_value) ? 'selected' : '';
+					$dropdown_output .= $language->flag.'&nbsp;<option value="'.$dropdown_value.'" '.$selected.'>'.$dropdown_key.'</option>';
+				}
+
+				$dropdown_output .= "</select>";
+				$fields .= $dropdown_output;
+			}
+			return $fields;
+		}
 		$options = get_option( $this->options_group_name );
 		$dropdown_output = '<select name="'.$this->options_group_name.'['. $option_key .']">';
 
