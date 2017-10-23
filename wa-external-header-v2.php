@@ -16,7 +16,7 @@
  * Plugin Name:       WhiteAlbum External Header shell v2
  * Plugin URI:         bonnier.dk
  * Description:       Co-branding/shell integration for WordPress sites collaborating commercially with Bonnier Media AS
- * Version:           3.0.0
+ * Version:           0.1.3
  * Author:            Bonnier Interactive
  * Author URI:        bonnier.dk
  * License:           GPL-2.0+
@@ -66,9 +66,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-wa-external-header-v2.php'
  *
  * @since    1.0.0
  */
-function run_wa_external_header_v2() {
-
+add_action('plugins_loaded', function(){
 	$plugin = new Wa_External_Header_V2();
 	$plugin->run();
-}
-run_wa_external_header_v2();
+}, 100);
