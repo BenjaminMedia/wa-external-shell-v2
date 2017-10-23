@@ -118,9 +118,6 @@ class Wa_External_Header_V2_Public
             $this->start_tag = print_r($wa_content->html->start_tag, true);
             $this->end_tag = print_r($wa_content->html->end_tag, true);
             $this->head = print_r($wa_content->html->head, true);
-            // preg_match("/^(.*)(<header .*)$/s", $wa_content->html->body->header, $siteHeader);
-            // print_r($wa_content->html->body);
-            // $this->afubar = $siteHeader[1];
             $this->header = $wa_content->html->body->header;
             $this->footer = print_r($wa_content->html->body->footer, true);
             $this->banners = print_r($wa_content->html->ad, true);
