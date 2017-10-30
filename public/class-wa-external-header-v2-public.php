@@ -76,7 +76,7 @@ class Wa_External_Header_V2_Public
         }
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
         if(Wa_External_Header_V2_Admin::languagesIsEnabled()){
-            $locale = (!empty($locale)) ? $locale : $this->getCurrentLanguage()->locale;
+            $locale = (!empty($locale)) ? $locale : $this->getCurrentLanguage();
             if(isset($this->getUserConfig()[$option.'_'. $locale])){
                 return $this->getUserConfig()[$option.'_'.$locale];
             }
@@ -209,8 +209,9 @@ HTML;
 
     private function get_white_album_content()
     {
+        $locale = !empty($this->getCurrentLanguage()) ? $this->getCurrentLanguage() : null;
         //try to see if it's in the cache
-        $responseCache = wp_cache_get( 'shell_response_body', $this->options_group_name );
+        $responseCache = wp_cache_get( 'shell_response_body' . $locale, $this->options_group_name );
         if ( false === $responseCache ) {
 
             //if the cache is empty, try to fetch the shell
@@ -223,7 +224,7 @@ HTML;
 
             $cacheFileFolder = trailingslashit(WP_CONTENT_DIR) . 'cache/wa-shell/';
             $fileName = parse_url($url)['host'];
-            $cacheFilePath = $cacheFileFolder . $fileName.'.json';
+            $cacheFilePath = $cacheFileFolder . $fileName. '-' . $locale .'.json';
 
             if (!file_exists($cacheFileFolder)) {
                 mkdir($cacheFileFolder, 0777, true);
@@ -238,7 +239,7 @@ HTML;
             }
             //put the local file's content into cache, so that the response can be fetched faster
             $newresponseCache = file_get_contents($cacheFilePath);
-            wp_cache_set( 'shell_response_body', $newresponseCache, $this->options_group_name );
+            wp_cache_set( 'shell_response_body' . $locale, $newresponseCache, $this->options_group_name );
 
             return json_decode($newresponseCache);
         }
@@ -254,14 +255,15 @@ HTML;
     public function getCurrentLanguage()
     {
         if (Wa_External_Header_V2_Admin::languagesIsEnabled()) {
-            return PLL()->model->get_language(pll_current_language());
+            return pll_current_language('locale');
         }
         return null;
     }
 
     private function get_white_album_api_url()
     {
-        $api_url = wp_cache_get( 'shell_api_url', $this->options_group_name );
+        $locale = !empty($this->getCurrentLanguage()) ? $this->getCurrentLanguage() : null;
+        $api_url = wp_cache_get( 'shell_api_url' . $locale, $this->options_group_name );
         if ( false === $api_url ) {
             $domain = $this->getOption('co_branding_domain');
             $host = "$domain";
@@ -271,7 +273,7 @@ HTML;
             $bcmType = !empty( $this->getOption('overwrite_site_type')) ? '&bcm_type=' . $siteType : false;
             $compactMenu = !empty( $this->getOption('compact_menu')) ? "&menu_type=compact" : false;
             $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "$compactMenu&without_ads=" . $showBanners . $bcmType;
-            wp_cache_set( 'shell_api_url', $api_url, $this->options_group_name );
+            wp_cache_set( 'shell_api_url' . $this->getCurrentLanguage(), $api_url, $this->options_group_name );
             return $api_url;
         }
 
