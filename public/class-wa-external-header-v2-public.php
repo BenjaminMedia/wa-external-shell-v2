@@ -117,8 +117,12 @@ class Wa_External_Header_V2_Public
         if ($wa_content !== null) {
             $this->start_tag = print_r($wa_content->html->start_tag, true);
             $this->end_tag = print_r($wa_content->html->end_tag, true);
-            $this->head = print_r($wa_content->html->head, true);
-            $this->header = $wa_content->html->body->header;
+            $gtmRegex = '/<!-- Google Tag Manager -->.*<!-- End Google Tag Manager -->/is';
+            preg_match($gtmRegex, $wa_content->html->body->header, $matches);
+            $googleTagManager = !empty($matches[0]) ? $matches[0] : '';
+            $this->head = print_r($wa_content->html->head, true) . $googleTagManager;
+            // remove google tag manager from header
+            $this->header = preg_replace($gtmRegex, '', $wa_content->html->body->header);
             $this->footer = print_r($wa_content->html->body->footer, true);
             $this->banners = print_r($wa_content->html->ad, true);
         }
