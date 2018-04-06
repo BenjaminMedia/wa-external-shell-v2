@@ -158,21 +158,29 @@ class Wa_External_Header_V2_Public
             );
             //<div data-tns-path="$tns_path></div>
         }
+
         if($hideShell){
             $this->head = preg_replace("/<link href=\".*?\" rel=\"(apple\-touch\-icon|shortcut icon)\" type=\"image\/png\" \/>/","",$this->head);
         }
-
+        
         echo
             $this->head.
             "<meta content=\"".$subname."\" name=\"bcm-sub\" />";
+    }
 
+    public function shell_header()
+    {
+        $this->setShellProperties();
+        $subname = $this->getOption('sub_name');
+        $content_unit_category = $this->getOption('content_unit_category');
+        $tns_path = $this->getOption('tns_tracking_path');
+        $hideShell = !empty($this->getOption('bp_hide_shell')) ? true : false;
         if ($this->header !== '' && !$hideShell) {
             $this->insert_header();
         }
         else if(!$hideShell){
             echo $this->remove_header($this->header);
         }
-
     }
 
     public function wp_footer()
@@ -244,7 +252,6 @@ HTML;
             //put the local file's content into cache, so that the response can be fetched faster
             $newresponseCache = file_get_contents($cacheFilePath);
             wp_cache_set( 'shell_response_body' . $locale, $newresponseCache, $this->options_group_name );
-
             return json_decode($newresponseCache);
         }
 
@@ -278,6 +285,7 @@ HTML;
             $compactMenu = !empty( $this->getOption('compact_menu')) ? "&menu_type=compact" : false;
             $api_url = "http://$host/api/v3/external_headers/?partial=" . $fullShell . "$compactMenu&without_ads=" . $showBanners . $bcmType;
             wp_cache_set( 'shell_api_url' . $this->getCurrentLanguage(), $api_url, $this->options_group_name );
+
             return $api_url;
         }
 
